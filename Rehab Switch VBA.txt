@@ -1,0 +1,111 @@
+Option Explicit
+
+Public Sub Tom()
+Dim objSwitchRqst As PSSwitchRequest
+Dim objSPH As PSSwitchProcessingHistory
+Dim objEnv As PSEnvironment
+Dim objError As PSErrors
+
+Dim lngMemberBenefitUID As Long
+Dim lngMemberInvestmentUid As Long
+Dim lngTargetInvestmentUid As Long
+Dim lngSwitchUID As Long
+Dim dteRequestDate As Date
+Dim dteSwitchOutDate As Date
+Dim dteSwitchInDate As Date
+
+Dim enumVal As Long
+
+On Error GoTo ErrorHandlerGen
+
+    lngMemberBenefitUID = 1284693
+    lngMemberInvestmentUid = 76345191
+    lngTargetInvestmentUid = 17378121
+    dteRequestDate = "2014-01-08"
+    dteSwitchOutDate = "2013-10-31"
+    dteSwitchInDate = "2013-11-25"
+    
+    Set objEnv = New PSEnvironment
+    
+    Set objSwitchRqst = New PSSwitchRequest
+    Set objSPH = New PSSwitchProcessingHistory
+    
+    asControl(objSwitchRqst).CurrentEnvironment = objEnv                        'set environment
+    Call objSwitchRqst.LoadSwitchRequestsForUpdate(lngMemberBenefitUID, "", "") 'load object
+    Call asChild(objSwitchRqst).MakeNewOfType("EEEREGPOST,NORMAL")              'create new
+    
+    With objSwitchRqst
+        .ParentUID = lngMemberBenefitUID
+        .RequestDate = dteRequestDate
+        .TaxDate = dteSwitchOutDate
+        .InvestmentUID = lngMemberInvestmentUid
+        .SwitchUnits = -2.516148
+        '.SwitchAmount = -123.01
+        '.SwitchAmountCurrency = "EUR"
+        .RequestLevel = "M"
+        .SwitchType = "N"
+        .SwitchRequestStatus = "U"
+        lngSwitchUID = objEnv.GenerateUid("Uid", 0)
+        .SwitchRequestUID = lngSwitchUID
+    
+        If Not asControl(objSwitchRqst).IsValid Then
+            Set objError = asControl(objSwitchRqst).ErrorList
+            
+            For enumVal = 0 To objError.Count - 1
+                MsgBox "Error " & enumVal + 1 & ": " & objError.Item(enumVal)
+            Next enumVal
+        Else
+            Call asChild(objSwitchRqst).MakeNewOfType("EEEREGPOST,NORMAL")              'create new
+            
+            With objSwitchRqst
+                .ParentUID = lngMemberBenefitUID
+                .RequestDate = dteRequestDate
+                .TaxDate = dteSwitchInDate
+                .InvestmentUID = lngTargetInvestmentUid
+                .SwitchUnits = 95.037763
+                '.SwitchAmount = 123.01
+                '.SwitchAmountCurrency = "EUR"
+                .RequestLevel = "M"
+                .SwitchType = "N"
+                .SwitchRequestStatus = "U"
+                .SwitchRequestUID = lngSwitchUID
+            
+                If Not asControl(objSwitchRqst).IsValid Then
+                    Set objError = asControl(objSwitchRqst).ErrorList
+                    
+                    For enumVal = 0 To objError.Count - 1
+                        MsgBox "Error " & enumVal + 1 & ": " & objError.Item(enumVal)
+                    Next enumVal
+                Else
+                    objEnv.SessionStart "Create Switch Request", ""
+                    
+                    On Error GoTo ErrorHandlerCreate
+                        objEnv.StartTx
+                        asControl(objSwitchRqst).Commit
+                        objEnv.CommitTx
+                        objEnv.SessionEnd psSessionComplete, ""
+                    On Error GoTo ErrorHandlerGen
+                End If
+            End With
+        End If
+    End With
+
+    MsgBox "Done!"
+    Exit Sub
+    
+ErrorHandlerGen:
+    MsgBox Err.Description
+    Exit Sub
+
+ErrorHandlerCreate:
+    Set objError = asControl(objSwitchRqst).ErrorList
+    
+    For enumVal = 0 To objError.Count - 1
+        MsgBox "Error " & enumVal + 1 & ": " & objError.Item(enumVal)
+    Next enumVal
+    MsgBox Err.Description
+    
+    objEnv.AbortTx
+    objEnv.SessionEnd psSessionAbort, ""
+    Exit Sub
+End Sub
