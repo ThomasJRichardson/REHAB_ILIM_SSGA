@@ -1,0 +1,21 @@
+BACKUP THE DATABASE
+
+1. use Setup Explorer to make a Benefit Association
+
+2. Create a Scheme Fund Manager rule to allow inexact unit price date (Latest Price for allocation? ticked)
+
+3. Calculate Investment Switch for all of the Rehab scheme - Req & Eff dates = 31-oct-2013
+
+4. Run the TxP for Manual Switches on the Rehab Scheme
+
+5. Create Fund Manager Notification - Sent date = 31-oct-2013 12:00
+
+6. Receive the contract note @ 31-oct-2013 12:10, price = 48.889
+
+7. Run the TxP for Manual Switches on the Rehab Scheme
+
+8. Create Fund Manager Notification - Sent date = 25-nov-2013 12:00
+
+9. Receive the contract note @ 25-nov-2013 12:10, price = 1.294348
+
+A. Run the TxP for Manual Switches on the Rehab Scheme
